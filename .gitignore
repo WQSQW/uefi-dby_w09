@@ -11,3 +11,6 @@ Mu-*.*
 *:Zone.Identifier
 *.vmbak.*
 *.orig
+*-orig
+*-bak
+*.bak
