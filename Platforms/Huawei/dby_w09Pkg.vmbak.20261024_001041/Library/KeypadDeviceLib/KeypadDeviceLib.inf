@@ -1,0 +1,30 @@
+## @file
+#  DBY-W09 (Huawei MatePad 11, SM8250) 平台按键设备层
+#
+#  实现 SiliciumPkg/Include/Library/KeypadDeviceLib.h 里那两个函数，
+#  被 SiliciumPkg/Drivers/KeypadDeviceDxe/KeypadDeviceDxe.inf 链接。
+#  真正的硬件读取（PM8150 PMIC via SPMI）在 KeypadDeviceLib.c 里。
+#
+#  为什么必须由平台提供：SiliciumPkg 只给出 KeypadDevice 协议的“生产者”
+#  （KeypadDeviceDxe）和消费者（KeypadDxe），平台必须自己实现
+#  Reset/GetKeys —— 上游只有 Xiaomi stonePkg（MTK）那一份，与本机无关。
+##
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = KeypadDeviceLib
+  FILE_GUID                      = 6F2B9C51-7A84-4E3D-9C21-5B0D8A7E4F12
+  MODULE_TYPE                    = BASE
+  VERSION_STRING                 = 1.0
+  LIBRARY_CLASS                  = KeypadDeviceLib
+
+[Sources.common]
+  KeypadDeviceLib.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  SiliciumPkg/SiliciumPkg.dec
+
+[LibraryClasses]
+  BaseMemoryLib
+  DebugLib
+  TimerLib

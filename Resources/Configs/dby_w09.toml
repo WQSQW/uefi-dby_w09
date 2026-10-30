@@ -1,0 +1,40 @@
+#
+# Boot Shim Configs
+#   DBY-W09：kernel 段是普通 arm64 Image（BootShim 头），需要 header
+#
+[boot_shim]
+requires_kernel_header = true
+
+#
+# UEFI FD Configs
+#   base 0xCE000000 来自真机验证过的 BootShim（offset 0x48）。
+#   size 从 0x700000(7MiB) 改成 0x800000(8MiB)，原因是硬算出来的：
+#     FVMAIN 是 NumBlocks=0 的"自动撑满"卷，2026-10-22 04:01 那版解包实测
+#     103 个文件、7194080 / 7196672 B，只剩 2592 B（见 fv_list.py 输出）。
+#     按键要再加 KeypadDeviceDxe + KeypadDxe 两个模块（几十 KB），7MiB 装不下，
+#     GenFv 会直接报 FV full。加 1MiB 后 FVMAIN 有余量，后面修 USB 也能用。
+#   0xCE000000 + 8MiB = 0xCE800000，仍在 MemoryMapLib 里 "UEFI FD" 那条
+#   0xCE000000 / 0x02000000(32MiB) 的预留范围内，不会和 0xD0000000 起的
+#   RAM Partition 撞车；install_dby_w09.sh 的自检也会再核一遍。
+#   boot.img 里 kernel 段原始 22,254,616 B，我们只用了 1,170,633 B，
+#   余量 21MB —— FD 变大后 payload 也就多 100~200KB，放得下。
+#
+[uefi_fd]
+base = 0xCE000000
+size = 0x800000
+
+#
+# Android Boot Image Kernel Configs
+#   第一版不追加 DTB：DBY-W09 没有 kona-huawei 的设备树，
+#   UEFI 自身不需要 DTB（SimpleFbDxe 靠内存描述表里的 Display Reserved）。
+#   等要引导 Linux/后续 payload 时再补 dby_w09.dtb 并改回 true。
+#
+[boot_image_kernel]
+kernel_compression = "gzip"
+append_dtb         = false
+
+#
+# Android Boot Image Configs
+#
+[boot_image]
+header_version = 4

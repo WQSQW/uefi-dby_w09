@@ -1,0 +1,65 @@
+##
+#  DBY09 平台覆盖版 PlatformBootManagerLib
+#  与 SiliciumPkg/Library/BootManagerLib/BootManagerLib.inf 的差别：
+#    - BASE_NAME / FILE_GUID 改为独立值（避免与原始库同名冲突）
+#    - 追加 UefiBootManagerLib / UefiLib，以及 SimpleFileSystem 相关 Protocol
+#  源码差异只有 BootManager.c 的 PlatformBootManagerUnableToBoot()，见文件头注释。
+#
+#  Copyright (C) Microsoft Corporation. All rights reserved.
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010018
+  BASE_NAME                      = Dby09BootManagerLib
+  FILE_GUID                      = 6B1C4E77-2D3A-4F58-9C61-0A7D5E8B3F42
+  VERSION_STRING                 = 1.0
+  MODULE_TYPE                    = DXE_DRIVER
+  UEFI_SPECIFICATION_VERSION     = 2.7
+  LIBRARY_CLASS                  = PlatformBootManagerLib|DXE_DRIVER
+
+[Sources]
+  BootManager.c
+  KeyCallback.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  PcBdsPkg/PcBdsPkg.dec
+  MsCorePkg/MsCorePkg.dec
+  MsGraphicsPkg/MsGraphicsPkg.dec
+  SiliciumPkg/SiliciumPkg.dec
+
+[LibraryClasses]
+  PcdLib
+  DebugLib
+  AcpiTableUpdateLib
+  DeviceBootManagerLib
+  UefiRuntimeServicesTableLib
+  UefiBootServicesTableLib
+  UefiBootManagerLib
+  UefiLib
+  SecureBootHandlerLib
+  MemoryAllocationLib
+  MsBootOptionsLib
+  BootGraphicsLib
+  DevicePathLib
+  PrintLib
+
+[Pcd]
+  gEfiMdePkgTokenSpaceGuid.PcdPlatformBootTimeOut
+
+[Guids]
+  gEfiEndOfDxeEventGroupGuid
+
+[Protocols]
+  gKeypadDeviceProtocolGuid
+  gEfiGraphicsOutputProtocolGuid
+  gEfiSimpleTextInputExProtocolGuid
+  gEfiSimpleFileSystemProtocolGuid
+  gEfiDevicePathProtocolGuid
+  #
+  # 从 FV 里读 UniXNU.efi（GUID 9B665204-A133-47A2-9396-9E2B370A4E25）再 LoadImage
+  #
+  gEfiFirmwareVolume2ProtocolGuid
+  gEfiLoadedImageProtocolGuid
