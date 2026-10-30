@@ -342,6 +342,7 @@ def create_android_boot_img (ctx: BuildContext, image_kernel_config: dict, image
         "kernel_offset":  "--kernel_offset",
         "os_patch_level": "--os_patch_level",
         "os_version":     "--os_version",
+        "pagesize":       "--pagesize",
         "ramdisk_offset": "--ramdisk_offset",
         "second_offset":  "--second_offset",
         "tags_offset":    "--tags_offset"
@@ -352,8 +353,8 @@ def create_android_boot_img (ctx: BuildContext, image_kernel_config: dict, image
         # Get Argument Value
         value = image_config.get (key)
 
-        # Append Argument Value
-        if value:
+        # Append Argument Value (0 is a value: base = 0 is what this board needs)
+        if value is not None:
             cmd.append (option)
             cmd.append (str (value))
 

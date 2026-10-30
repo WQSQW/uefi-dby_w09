@@ -25,8 +25,6 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    labels:
-      - "dependence"
 
   - package-ecosystem: "pip"
     directory: "/"
@@ -36,5 +34,3 @@ updates:
       all-pip-dependencies:
         patterns:
           - "*"
-    labels:
-      - "dependence"

@@ -27,14 +27,25 @@ size = 0x800000
 # Android Boot Image Kernel Configs
 #   第一版不追加 DTB：DBY-W09 没有 kona-huawei 的设备树，
 #   UEFI 自身不需要 DTB（SimpleFbDxe 靠内存描述表里的 Display Reserved）。
-#   等要引导 Linux/后续 payload 时再补 dby_w09.dtb 并改回 true。
+#   append_dtb 保持 false：DTB 走 boot header 的 --dtb，不拼在 kernel 段尾。
+#   Resources/DTBs/dby_w09.dts 只提供 rootparam 节点，供 dtbo 分区那份 overlay 定位。
 #
 [boot_image_kernel]
-kernel_compression = "gzip"
+kernel_compression = "none"
 append_dtb         = false
 
 #
 # Android Boot Image Configs
 #
+# 真机（ABL unlocked, boot state orange）验证过的布局：header v2，kernel 段是原始
+# BootShim.bin + SILICIUM_UEFI.fd。header 里的 DTB 必须带 rootparam 节点且用 dtc -@
+# 编过，dtbo 分区那份 536B overlay 的 __fixups__ 就是指向 rootparam；缺了它 ABL 报
+# "ApplyOverlay: ufdt apply overlay failed" 然后退出 fastboot。
 [boot_image]
-header_version = 4
+header_version = 2
+pagesize       = 4096
+base           = 0
+kernel_offset  = 0x8000
+tags_offset    = 0x1e00000
+dtb            = "Resources/DTBs/dby_w09.dtb"
+dtb_offset     = 0x1f00000

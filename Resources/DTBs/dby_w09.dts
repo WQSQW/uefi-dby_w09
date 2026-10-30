@@ -1,0 +1,24 @@
+/dts-v1/;
+
+// Minimal device tree used only as the boot image header DTB.
+//
+// Huawei ABL applies the 536-byte overlay from the dtbo partition to the DTB in the boot
+// image header and its __fixups__ target the label rootparam. Without a rootparam node in
+// the base tree the overlay cannot be applied (`ApplyOverlay: ufdt apply overlay failed`)
+// and ABL returns to fastboot instead of entering the payload. This tree exists to provide
+// that label; UEFI itself takes its hardware description from the ADT, not from here, so
+// there is nothing else to describe.
+/ {
+    model = "Huawei MatePad 11 (DBY)";
+    compatible = "huawei,dby", "qcom,kona";
+
+    #address-cells = <2>;
+    #size-cells = <2>;
+
+    rootparam: rootparam {
+    };
+
+    chosen {
+        bootargs = "";
+    };
+};
