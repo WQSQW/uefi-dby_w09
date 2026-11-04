@@ -200,6 +200,17 @@
   #
   KeypadDeviceLib|dby_w09Pkg/Library/KeypadDeviceLib/KeypadDeviceLib.inf
 
+  #
+  # 变量策略锁审计（Si 界面上那行 "VariablePolicy Lock"）
+  #   SiliciumPkg.dsc.inc:275 绑的是 DebugMessage 实例。它不是故障：
+  #   VariablePolicyLib.c:1040 每次锁事件都发 SECURITY_LOCK_REPORT_EVENT，
+  #   SecurityLockAuditDebugMessageLib.c:43 按设计用 DEBUG_ERROR 打印，所以
+  #   把日志降到只留错误等级它也照样出现。Mu 自带官方静默实例
+  #   SecurityLockAuditLibNull（只留事件、不打印），这里按板级覆盖的既有
+  #   写法（同上 PlatformBootManagerLib）换掉 DebugMessage 实例。
+  #
+  SecurityLockAuditLib|MdeModulePkg/Library/SecurityLockAuditLibNull/SecurityLockAuditLibNull.inf
+
 [Components]
   #
   # ACPI Tables
