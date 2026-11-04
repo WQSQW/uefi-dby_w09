@@ -1,0 +1,61 @@
+diff --git a/ArmPkg/Drivers/TimerDxe/TimerDxe.c b/ArmPkg/Drivers/TimerDxe/TimerDxe.c
+index b7f5ecc..313976a 100644
+--- a/ArmPkg/Drivers/TimerDxe/TimerDxe.c
++++ b/ArmPkg/Drivers/TimerDxe/TimerDxe.c
+@@ -38,6 +38,13 @@ UINT64  mElapsedPeriod = 1;
+ // Cached copy of the Hardware Interrupt protocol instance
+ EFI_HARDWARE_INTERRUPT_PROTOCOL  *gInterrupt = NULL;
+ 
++// The timer interrupt numbers actually handed to the interrupt driver, kept so
++// the ExitBootServices handler can undo exactly that registration.
++STATIC UINT32  mTimerVirtIntrNum = 0;
++STATIC UINT32  mTimerIntrNum     = 0;
++STATIC UINT32  mTimerSecIntrNum  = 0;
++STATIC UINT32  mTimerHypIntrNum  = 0;
++
+ /**
+   This function registers the handler NotifyFunction so it is called every time
+   the timer interrupt fires.  It also passes the amount of time since the last
+@@ -87,7 +94,16 @@ TimerDriverRegisterHandler (
+ }
+ 
+ /**
+-    Disable the timer
++    Disable the timer and hand its interrupt back to the firmware
++
++    RegisterInterruptSource() enables every source it registers (see
++    GicCommonRegisterInterruptSource: "set up the handler before enabling"),
++    while ArmGicDxe's ExitBootServices handler only walks the SPI ranges. So
++    the architectural timer PPI stayed enabled across the handoff, and the
++    first tick after the next stage opened its interrupt mask arrived with no
++    dispatcher behind it. Unregistering with a NULL handler is this driver's
++    documented way to mask a source on the way out, so it is undone with the
++    same call that set it up.
+ **/
+ VOID
+ EFIAPI
+@@ -97,6 +113,13 @@ ExitBootServicesEvent (
+   )
+ {
+   ArmGenericTimerDisableTimer ();
++
++  if (gInterrupt != NULL) {
++    gInterrupt->RegisterInterruptSource (gInterrupt, mTimerVirtIntrNum, NULL);
++    gInterrupt->RegisterInterruptSource (gInterrupt, mTimerIntrNum, NULL);
++    gInterrupt->RegisterInterruptSource (gInterrupt, mTimerSecIntrNum, NULL);
++    gInterrupt->RegisterInterruptSource (gInterrupt, mTimerHypIntrNum, NULL);
++  }
+ }
+ 
+ /**
+@@ -393,6 +416,10 @@ TimerInitialize (
+     TimerSecIntrNum  = PcdGet32 (PcdArmArchTimerSecIntrNum);
+     TimerIntrNum     = PcdGet32 (PcdArmArchTimerIntrNum);
+   }
++  mTimerVirtIntrNum = TimerVirtIntrNum;
++  mTimerIntrNum     = TimerIntrNum;
++  mTimerSecIntrNum  = TimerSecIntrNum;
++  mTimerHypIntrNum  = TimerHypIntrNum;
+ 
+   // Install secure and Non-secure interrupt handlers
+   // Note: Because it is not possible to determine the security state of the
