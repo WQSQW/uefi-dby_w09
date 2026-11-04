@@ -205,8 +205,8 @@
   # (a) UniXNU 官方菜单 —— 屏幕上的那个"苹果 logo + UniXNU version 0.1.0 +
   #     Return to firmware / Restart / Power off"界面，就是它。FILE_GUID
   #     9B665204-A133-47A2-9396-9E2B370A4E25，由
-  #     PlatformBootManagerLib/BootManager.c 的 DbyW09StartUniXNU() 直接从 FV
-  #     读出来 LoadImage + StartImage。
+  #     UniXNUDxe（下一行）注册 Boot#### 后由平台 BDS 直接启动它 —— 这是官方接线。
+  #     PlatformBootManagerLib/BootManager.c 的 DbyW09StartUniXNU() 只剩兜底。
   #
   # (b) 不要再在这里列 MdeModulePkg/Application/BootManagerMenuApp/BootManagerMenuApp.inf：
   #     KonaPkg 的公共 inc（DXE.inc / QcomPkg Extra.fdf.inc）已经把它的 FFS 放进 FvMain 了。
@@ -217,6 +217,7 @@
   #     它现在只作为 UniXNU 的兜底（FV 里找不到 9B665204 时才用）。
   #
   UniXNUPkg/Application/UniXNU/UniXNU.inf
+  UniXNUPkg/Driver/UniXNUDxe/UniXNUDxe.inf
   DarwinBootPkg/Driver/DarwinBoot.inf
 
   #

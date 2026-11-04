@@ -76,13 +76,18 @@ READ_LOCK_STATUS   = TRUE
   # Boot Manager 菜单
   #   (a) UniXNU 官方菜单（苹果 logo + Return to firmware / Restart / Power off）
   #       FILE_GUID = 9B665204-A133-47A2-9396-9E2B370A4E25
-  #       PlatformBootManagerLib 从 FV 里按这个 GUID 读出来直接 StartImage。
+  #       官方接线：UniXNUDxe（registrar DXE driver）与 app 放在同一个 FV，它被
+  #       dispatch 时注册一个 Boot#### 并移到 BootOrder 首位，于是平台 BDS 像对待
+  #       任何启动项一样直接启动 UniXNU（规程见 UniXNUPkg/Driver/UniXNUDxe/UniXNUDxe.inf
+  #       的 [Defines] 说明）。PlatformBootManagerLib 里按 GUID 手工 LoadImage 那条
+  #       从此只是 UniXNUDxe 缺席时的兜底。
   #   (b) BootManagerMenuApp（EEC25BDC-...）已经由公共 inc 放进 FvMain，
   #       这里**不能再列一次**，否则 GenFv 会因为 GUID 重复直接失败：
   #         the 93th file and 97th file have the same file GUID.
   #       它只当 UniXNU 缺失时的兜底。
   #
   INF UniXNUPkg/Application/UniXNU/UniXNU.inf
+  INF UniXNUPkg/Driver/UniXNUDxe/UniXNUDxe.inf
 
   # 按键（实体键 -> SimpleTextIn）
   #   KeypadDeviceDxe：装 gKeypadDeviceProtocolGuid + KeypadDevicePath
