@@ -84,14 +84,21 @@
   gQcomPkgTokenSpaceGuid.PcdPlatformType|"LA"
 
   #
-  # UniXNU 日志等级：0x40 -> 0
+  # 固件日志等级：钉成 UniXNU 官方值 0x80000000（只留 DEBUG_ERROR）。
+  # 上游 package/UniXNUPkg/UniXNUPkg.dsc 的 [PcdsFixedAtBuild] 就是这个值。
   #
-  # 改在 UniXNUPkg.dec 里（该 PCD 是 [PcdsFixedAtBuild]，dec 的默认值就是
-  # 平台默认值，无需在本 dsc 重复声明包与 PCD）。
-  # 原因见 UniXNUPkg.dec 那段注释：本机 DebugLib 的输出不走 SimpleFbDxe 的
-  # GOP，因此不经过 RotateFlush，会和旋转后的菜单抢同一块物理帧缓冲，
-  # 横拿看就是"图形正了、代码竖着往下跑"。
+  # 旧注释说"改在 UniXNUPkg.dec 里"是假的：那个文件没有这条 PCD，而本板 DSC
+  # 只 !include KonaPkg.dsc.inc，UniXNUPkg.dsc 根本不在包含链里，实际生效的
+  # 一直是 SiliciumPkg.dsc.inc:71 的 0x8007EE0F（DEBUG 构建全量打印）。
   #
+  # 为什么要压到只留错误：本机 SerialPortLib 是 Silicium 的
+  # FrameBufferSerialPortLib（SiliciumPkg.dsc.inc:162），它绕过 GOP/ConOut
+  # 直接写物理帧缓冲；UniXNU 菜单整屏只画一次（Menu.c:127），之后只重画底部
+  # 状态行 —— 菜单出来后每多一行日志都永久压在 logo 和条目上，位置还固定。
+  # 等级降下来后 DXE 阶段不再刷屏，光标停在顶部，厂商预编译 blob 里那几行
+  # （等级烘死在二进制里、我们的 PCD 管不到）也落在左上而不是菜单框里。
+  #
+  gEfiMdePkgTokenSpaceGuid.PcdDebugPrintErrorLevel|0x80000000
 
 #
 # 文本控制台几何
