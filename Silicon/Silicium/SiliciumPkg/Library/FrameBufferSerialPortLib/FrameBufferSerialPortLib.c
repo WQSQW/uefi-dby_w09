@@ -55,6 +55,15 @@ STATIC UINT32  mLogW;
 STATIC UINT32  mLogH;
 STATIC BOOLEAN mRotate;
 
+//
+// 换行绕回时的起始行。UniXNU 的菜单把苹果 logo 画在上半屏、条目画在中间，
+// 而本文件的字符是直接落进同一块帧缓冲的（不经过 GOP），启动阶段晚到的
+// DEBUG_ERROR —— 例如接上 USB 线时 phy init 那几行 —— 绕回后从第 0 行开始
+// 就盖在 logo 上。所以绕回改成落在下半屏：字不消失，只换位置。
+// 整屏消息（'\f' 的交接页）不受影响，仍然从顶上铺满。
+//
+STATIC UINT32  mLogFirstRow;
+
 UINT8
 GetFontScale ();
 
@@ -234,16 +243,18 @@ AdvanceNewLine (
     return;
   }
 
-  // Wrap to the Top, keeping the previous Screen visible
+  // Wrap into the lower half, keeping the previous Screen visible. The upper
+  // half belongs to the menu: the logo and the entries are drawn there by
+  // UniXNU, and a late DEBUG_ERROR that wraps to row 0 lands on top of them.
   if (CurrentPosition->YPos >= MaxPosition.YPos) {
-    CurrentPosition->YPos = 0;
+    CurrentPosition->YPos = mLogFirstRow;
   }
 
   // Clear the Line about to be written and the next one, a blank Separator
   // between the newest and the oldest visible Lines
   FontScale  = GetFontScale ();
   CellHeight = (UINTN)(FONT_HEIGHT - 4) * FontScale;
-  NextYPos   = (CurrentPosition->YPos + 1 < MaxPosition.YPos) ? CurrentPosition->YPos + 1 : 0;
+  NextYPos   = (CurrentPosition->YPos + 1 < MaxPosition.YPos) ? CurrentPosition->YPos + 1 : mLogFirstRow;
 
   ClearBand ((UINTN)CurrentPosition->YPos * CellHeight, (UINTN)CurrentPosition->YPos * CellHeight + CellHeight);
   ClearBand ((UINTN)NextYPos * CellHeight, (UINTN)NextYPos * CellHeight + CellHeight);
@@ -290,11 +301,14 @@ GetFbPositions (
     LocalMaxPosition.YPos = 1;
   }
 
+  // 日志带从下半屏开始；只有一行可用时退回整屏
+  mLogFirstRow = (LocalMaxPosition.YPos > 1) ? (LocalMaxPosition.YPos / 2) : 0;
+
   // 这块内存不在 SimpleFbDxe 清屏范围内（它只清 1600*2560*4），
-  // 首次开机里面是垃圾，位置可能是天文数字 —— 越界就回左上角。
+  // 首次开机里面是垃圾，位置可能是天文数字 —— 越界就回日志带首行。
   if ((*CurrentPosition)->YPos != FB_FROZEN_YPOS) {
     if ((*CurrentPosition)->YPos >= LocalMaxPosition.YPos) {
-      (*CurrentPosition)->YPos = 0;
+      (*CurrentPosition)->YPos = mLogFirstRow;
     }
 
     if ((*CurrentPosition)->XPos >= LocalMaxPosition.XPos) {
